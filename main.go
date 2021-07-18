@@ -23,7 +23,7 @@ func homePage(w http.ResponseWriter, r *http.Request){
 }
 
 
-func createHandler(w http.ResponseWriter, r *http.Request){
+func createHandler(w http.ResponseWriter, r *http.Request)(int,string,string){
 	var param Create
 	err := json.NewDecoder(r.Body).Decode(&param)
 	if err != nil {
@@ -33,17 +33,22 @@ func createHandler(w http.ResponseWriter, r *http.Request){
 	b := string(rand.Intn(100000000000))
 	id := rand.Intn(100000000000)
 	encoded := base64.StdEncoding.EncodeToString([]byte(b))
-	sql := "INSERT INTO user VALUES(" + string(id) + "," +  name + "," + string(encoded) + ");";
-	result, err := db.Exec(sql)
-	log.Fatal(err)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(result)
+	return id, name, encoded
 }
 
-func userCreate(fn func(http.ResponseWriter, *http.Request,db *sql.DB)) http.HandlerFunc {
+func userCreate(fn func(w http.ResponseWriter,r *http.Request,db *sql.DB)) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
+		id, name, encoded := createHandler(w,r)
+		sql := "INSERT INTO user VALUES(" + string(id) + "," +  name + "," + string(encoded) + ");";
+		result, err := db.Exec(sql)
+		log.Fatal(err)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(result)
+	}
+}
+
 
 
 
